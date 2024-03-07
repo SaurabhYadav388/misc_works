@@ -1,0 +1,196 @@
+
+#include <SFML/Graphics.hpp>
+#include<SFML/Window.hpp>
+#include<SFML/System.hpp>
+#include<SFML/Audio.hpp>
+#include<SFML/Network.hpp>
+#include<iostream>
+
+using namespace sf;
+
+int main()
+{
+    RenderWindow window(VideoMode(1000, 600), "SFML works!");
+    //window.setFramerateLimit(600);//
+
+    CircleShape shape(50.0f);
+    shape.setFillColor(Color::Green);
+    float dirX = cosf(3.14f / 2.0f);
+    float dirY = sinf(3.14f / 2.0f);
+    float velocity = 10.0f;
+
+    //********Shooting projectiles in SFML / C++ in direction of mouse
+    ConvexShape arrow;
+    arrow.setPointCount(7);
+   
+    arrow.setPoint(0, Vector2f(0, 1));
+    arrow.setPoint(1, Vector2f(30, 1));
+    arrow.setPoint(2, Vector2f(35, 3));
+    arrow.setPoint(3, Vector2f(40, 0));
+    arrow.setPoint(4, Vector2f(35, -3));
+    arrow.setPoint(5, Vector2f(30, -1));
+    arrow.setPoint(6, Vector2f(0, -1));
+    arrow.setFillColor(Color::Green);
+    
+    arrow.setOrigin(Vector2f(40, 0));/////////
+    
+    arrow.setPosition(100, 300);
+
+    arrow.scale(3, 3);
+    
+
+    VertexArray trajectoryLine(LinesStrip);
+
+    float initialXPos;
+    bool mouseIsClicked = false;
+    float angle = 0;
+    float speed = 0;
+    float moveTime = 0.f;
+    bool startArrowProjectile = false;
+    int f = 0;
+    while (window.isOpen()) {
+        Event event;
+        while (window.pollEvent(event))
+        {
+            if (event.type == Event::Closed)
+                window.close();
+
+            if (event.type == Event::MouseButtonPressed)
+            {
+                initialXPos = Mouse::getPosition(window).x;
+                mouseIsClicked = true;
+            }
+
+            if (mouseIsClicked == true
+                //event.type == Event::MouseButtonPressed
+                )
+            {
+                trajectoryLine.clear();
+
+                angle = atan2f(Mouse::getPosition(window).y - arrow.getPosition().y,
+                    Mouse::getPosition(window).x - arrow.getPosition().x);
+                //std::cout << "angle: "<<(angle/3.1459) * 180 <<"\n";
+
+
+                speed = 0.2f * (initialXPos - Mouse::getPosition(window).x);
+
+                arrow.setRotation(speed * (-angle));
+
+                // Simulate the projectile path
+                for (float t = 0; t <= 10.0f; t += 0.001f) {
+                    float x = speed * t * std::cosf(angle);
+                    float y = speed * t * std::sinf(angle) - 0.5f * 9.8f * t * t;
+                    //std::cout << "in line: x= " << x << " y= " << y << "\n";
+                    Vector2f arrowheadPosition = arrow.getTransform().transformPoint(arrow.getPoint(3));
+                    //std::cout << "line arrw: x= " << arrowheadPosition.x  << " y= " << arrowheadPosition.y<< "\n";
+                    trajectoryLine.append(sf::Vertex(sf::Vector2f(arrowheadPosition.x + x, arrowheadPosition.y - y), sf::Color::Red));
+
+                }
+            }
+
+            if (event.type == Event::MouseButtonReleased)
+            {
+                mouseIsClicked = false;
+                startArrowProjectile = true;
+            }
+            // 
+        }
+
+        if (startArrowProjectile && f< trajectoryLine.getVertexCount())
+        {
+            arrow.setPosition(trajectoryLine[f].position.x, trajectoryLine[f].position.y);
+            
+            if (f > 0)
+            {
+                float rotateAngle = atan2f( 
+                                            trajectoryLine[f].position.y - trajectoryLine[f-1].position.y,
+                                            trajectoryLine[f].position.x - trajectoryLine[f-1].position.x
+                                            );
+                arrow.setRotation(speed * 0.5*(rotateAngle));////////////50
+            }
+            
+            
+            
+            
+            f++;
+        }
+                            
+
+        //arrow.move(.1f, .1f);
+        //shape.move(.1f, .1f);
+        window.clear();
+
+        // Draw arrow
+        window.draw(arrow);
+
+        // Draw trajectory line
+        window.draw(trajectoryLine);
+        //window.draw(shape);
+        window.display();
+    }
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+//if (startArrowProjectile && moveTime <= 1.0f)
+        //{
+        //    //std::cout << "proj: x= " << arrow.getGlobalBounds().getPosition().x << " y= " << arrow.getGlobalBounds().getPosition().y << "\n";
+        //    //moveTime += 0.1f;
+        //    //float x = speed * moveTime * std::cosf(angle);
+        //    //float y = speed* moveTime * std::sinf(angle) - 0.5f * 9.8f * moveTime * moveTime;
+        //    ////std::cout << "in proj: x= " << x << " y= " << y << "\n";
+
+        //    //Vector2f arrowheadPosition = arrow.getTransform().transformPoint(arrow.getPoint(3));
+        //    ////std::cout << "arr trnsf: x= " << arrowheadPosition.x << " y= " << arrowheadPosition.y << "\n";
+        //    ////std::cout << "arr global: x= " << arrow.getGlobalBounds().getPosition().x << " y= " << arrow.getGlobalBounds().getPosition().y << "\n";
+
+        //    //
+        //    //arrow.move(x,-y);
+
+
+        //    
+        //    moveTime += 0.001f;
+        //    float changeX = speed * 0.001f * std::cosf(angle);
+        //    float changeY = speed * 0.001f * std::sinf(angle) - 0.5f * 9.8f * ( 2 * moveTime  - 1 );
+        //    
+        //    Vector2f arrowheadPosition = arrow.getTransform().transformPoint(arrow.getPoint(3));
+
+
+        //    //std::cout << "arr trnsf: x= " << arrowheadPosition.x << " y= " << arrowheadPosition.y << "\n";
+        //    //std::cout << "arr global: x= " << arrow.getGlobalBounds().getPosition().x << " y= " << arrow.getGlobalBounds().getPosition().y << "\n";
+
+        //    std::cout << "in proj: x= " << changeX << " y= " << -changeY << "\n";
+
+        //   // arrow.move(changeX,-changeY);
+        //    arrow.move(changeX, -changeY);
+        //    
+        //}
+
+        /*if (startArrowProjectile && f < trajectoryLine.getVertexCount())
+        {
+            float x = trajectoryLine[f].position.x;
+            float y = trajectoryLine[f].position.y;
+
+            arrow.move()
+            f++;
+        }*/
+
+
+        /*for (int i = 0;i < trajectoryLine.getVertexCount();i++)
+                                    {
+                                        arrow.setPosition(trajectoryLine[i].position.x, trajectoryLine[i].position.y);
+
+                                    }
+                                    f++;*/
