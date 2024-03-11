@@ -1,0 +1,43 @@
+#ifndef SCORECARD_H
+#define SCORECARD_H
+
+#include <SFML/Graphics.hpp>
+
+class Scorecard {
+public:
+    Scorecard(sf::Font& font, unsigned int characterSize, sf::Vector2f position);
+    void setScore(int newScore);
+    void increaseScore(int points);
+    void draw(sf::RenderWindow& window);
+
+private:
+    int score;
+    sf::Text scoreText;
+};
+
+#endif // SCORECARD_H
+
+
+
+#include "Scorecard.h"
+
+Scorecard::Scorecard(sf::Font& font, unsigned int characterSize, sf::Vector2f position) : score(0) {
+    scoreText.setFont(font);
+    scoreText.setCharacterSize(characterSize);
+    scoreText.setPosition(position);
+    setScore(score);
+}
+
+void Scorecard::setScore(int newScore) {
+    score = newScore;
+    scoreText.setString("Score: " + std::to_string(score));
+}
+
+void Scorecard::increaseScore(int points) {
+    score += points;
+    setScore(score);
+}
+
+void Scorecard::draw(sf::RenderWindow& window) {
+    window.draw(scoreText);
+}
