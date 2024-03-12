@@ -2,14 +2,14 @@
 
 Target::Target()
 {
-    targetShape.setRadius(50.f);
-    targetShape.setOrigin(50.f, 50.f); // Set origin to the center
+    targetShape.setRadius(100.f);
+    targetShape.setOrigin(100.f, 100.f); // Set origin to the center
     targetShape.setPosition(800, 300);
     targetShape.setFillColor(sf::Color::White);
     targetShape.setScale({ 0.5f,1.f });
     ////////////
-    testShape.setRadius(50.f);
-    testShape.setOrigin(50.f, 50.f); // Set origin to the center
+    testShape.setRadius(100.f);
+    testShape.setOrigin(100.f, 100.f); // Set origin to the center
     testShape.setPosition(800, 300);
     testShape.setFillColor(sf::Color::Green);
     
@@ -40,8 +40,18 @@ bool Target::isHit(sf::Vector2f arrowHeadPosition)
     float arrowY = arrowHeadPosition.y;
 
     sf::Vector2f centre = targetShape.getTransform().transformPoint(targetShape.getOrigin());
-
+    /*
     if ((arrowX - centre.x) * (arrowX - centre.x) + (arrowY - centre.y) * (arrowY - centre.y) <= getRadius() * getRadius() )
+        return true;*/
+
+    float x = arrowX;
+    float y = arrowY;
+    float h = centre.x;
+    float k = centre.y;
+    float a = targetShape.getGlobalBounds().width;//getRadius()/2.f;
+    float b = targetShape.getGlobalBounds().height;// getRadius();
+
+    if (((x - h) / a) * ((x - h) / a) + ((y - k) / b) * ((y - k) / b) <= 1.f)
         return true;
     
     return false;
