@@ -11,7 +11,6 @@ using namespace sf;
 
 int main()
 {
-    
     Game game;
     game.initGame();
     game.runGame();

@@ -15,18 +15,9 @@
 class Game
 {
 public:
-    //Game();
     void initGame();
     void runGame();
-
     void updateGame(sf::Vector2u windowSize);
-
-   /* void onMousePressed();
-    void whileMousePressed();
-    void onMouseReleased();
-
-    int isCollision();
-    void onGameEnd();*/
 
 private:
     Arrow arrow;

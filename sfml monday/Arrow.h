@@ -10,7 +10,7 @@ public:
 	void setProjAngle(const float& _angle);
 	void setProjSpeed(const float& _speed);
 
-	void setRotation(const float& _rotation);
+	void setRotation(const float& rotation);
 
 	sf::Vector2f getPosition();
 	float getProjAngle();

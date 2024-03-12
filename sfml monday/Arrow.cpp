@@ -10,7 +10,7 @@ Arrow::Arrow()
     arrowShape.setPoint(4, sf::Vector2f(35, -3));
     arrowShape.setPoint(5, sf::Vector2f(30, -1));
     arrowShape.setPoint(6, sf::Vector2f(0, -1));
-    arrowShape.setFillColor(sf::Color::Green);
+    arrowShape.setFillColor(sf::Color::Yellow);
     arrowShape.scale(2, 2);
     arrowShape.setPosition(100, 300);
     arrowShape.setOrigin(sf::Vector2f(40, 0)); //origin as arrow head

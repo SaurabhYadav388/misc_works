@@ -1,70 +1,72 @@
 #include "Target.h"
-/*https://github.com/spiniferx/BowAndArrow/tree/master/Assets/bowandarrow/Textures*/
+/* https://github.com/spiniferx/BowAndArrow/tree/master/Assets/bowandarrow/Textures */
 Target::Target()
 {
-    targetShape.setRadius(100.f);
-    targetShape.setOrigin(100.f, 100.f); // Set origin to the center
-    targetShape.setPosition(800, 300);
-    targetShape.setFillColor(sf::Color::White);
-    targetShape.setScale({ 0.5f,1.f });
-    ////////////
-    testShape.setRadius(100.f);
-    testShape.setOrigin(100.f, 100.f); // Set origin to the center
-    testShape.setPosition(800, 300);
-    testShape.setFillColor(sf::Color::Green);
-    
+    targetTexture.loadFromFile("./targetImg.png");
+    targetSpriteShape.setTexture(targetTexture);
 
-    //////////
+    targetSpriteShape.setOrigin({ targetSpriteShape.getGlobalBounds().getSize().x / 2.f,targetSpriteShape.getGlobalBounds().getSize().y / 2.f });
+    targetSpriteShape.setScale({ 0.5f,1.f });
+
+    targetSpriteShape.setPosition(800, 200);
 
     targetMoveSpeed = 0;
 }
 
 void Target::setPosition(const float& posX, const float& posY)
 {
-    targetShape.setPosition(posX, posY);
+    targetSpriteShape.setPosition(posX, posY);
 }
 
 sf::Vector2f Target::getPosition()
 {
-    return targetShape.getGlobalBounds().getPosition();
+    return targetSpriteShape.getGlobalBounds().getPosition();
 }
 
-float Target::getRadius()
+sf::Vector2f Target::getSize()
 {
-    return targetShape.getRadius();
+    return targetSpriteShape.getGlobalBounds().getSize();
 }
+
 
 bool Target::isHit(sf::Vector2f arrowHeadPosition)
 {
-    float arrowX = arrowHeadPosition.x;
-    float arrowY = arrowHeadPosition.y;
-
-    sf::Vector2f centre = targetShape.getTransform().transformPoint(targetShape.getOrigin());
-    /*
-    if ((arrowX - centre.x) * (arrowX - centre.x) + (arrowY - centre.y) * (arrowY - centre.y) <= getRadius() * getRadius() )
-        return true;*/
-
-    float x = arrowX;
-    float y = arrowY;
+    sf::Vector2f centre = targetSpriteShape.getTransform().transformPoint(targetSpriteShape.getOrigin());
+    
+    float x = arrowHeadPosition.x;
+    float y = arrowHeadPosition.y;
     float h = centre.x;
     float k = centre.y;
-    float a = targetShape.getGlobalBounds().width;//getRadius()/2.f;
-    float b = targetShape.getGlobalBounds().height;// getRadius();
+    //decrease width of target to 30% to make arrow appear inside target
+    float a = (targetSpriteShape.getGlobalBounds().width /2.f ) * 0.30f;
+    float b = targetSpriteShape.getGlobalBounds().height /2.f;
 
     if (((x - h) / a) * ((x - h) / a) + ((y - k) / b) * ((y - k) / b) <= 1.f)
         return true;
-    
+
     return false;
 }
 
 void Target::move(const float& offsetX, const float& offsetY)
 {
-    targetShape.move(offsetX, offsetY);
+    targetSpriteShape.move(offsetX, offsetY);
+}
+
+
+int Target::pointsEarned(sf::Vector2f arrowHeadPosition)
+{
+    /*
+    float aY = arrowHeadPosition.y ;
+    float centreY = targetSpriteShape.getTransform().transformPoint(targetSpriteShape.getOrigin()).y;
+    if((aY-centreY))
+    
+    */
+    return 0;
 }
 
 void Target::draw(sf::RenderTarget& target)//target is window
 {
-    target.draw(testShape);
-    target.draw(targetShape);
     
+    target.draw(targetSpriteShape);
+
 }
