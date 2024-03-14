@@ -1,0 +1,297 @@
+// 
+//
+
+#include <iostream>
+#include <vector>
+using namespace std;
+
+template <typename T>
+class Matrix {
+
+protected:
+
+    int rows;
+    int cols;
+    vector<vector<T>> data;
+
+public:
+    
+    //param. constructor
+    Matrix(int rows, int cols)
+    {
+        this->rows = rows;
+        this->cols = cols;
+        data = vector<vector<T>>(rows, vector<T>(cols, 0));
+        //cout << "constructor row col:"<<rows<<" , "<<cols<<"\n";
+    }
+
+    //addition operator
+    Matrix operator +(const Matrix<T>& second)
+    {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+        Matrix<T> res(rows, cols);
+        for (int i = 0;i < rows;i++)
+        {
+            for (int j = 0;j < cols;j++)
+                res.data[i][j]=this->data[i][j]+second.data[i][j];
+        }
+        return res;
+    }
+
+    //subtraction operator
+    Matrix<T> operator -(const Matrix<T>& second)
+    {
+        Matrix<T> res(rows, cols);
+        for (int i = 0;i < rows;i++)
+        {
+            for (int j = 0;j < cols;j++)
+                res.data[i][j] = this->data[i][j] - second.data[i][j];
+        }
+        return res;
+    }
+
+    //multiplication operator
+    Matrix<T> operator *(const Matrix<T>& second)
+    {
+        if (cols != second.rows)
+            ;//handle
+
+        Matrix<T> res(rows, second.cols);
+
+        for (int i = 0;i < rows;i++)
+        {
+            for (int j = 0;j < second.cols;j++)
+            {
+                res.data[i][j] = 0;//init to zero
+                for (int k = 0;k < cols;k++)
+                {
+                    res.data[i][j] += this->data[i][k] * second.data[k][j];
+                    
+                }
+                
+            }
+        }
+        return res;
+    }
+
+    //scalar multiplication operator
+    Matrix<T> operator *(const int scale)
+    {
+        Matrix<T> res(rows, cols);
+
+        for (int i = 0;i < rows;i++)
+        {
+            for (int j = 0;j < cols;j++)
+            {
+                res.data[i][j] = data[i][j] * scale;
+            }
+        }
+        return res;
+    }
+    
+    //transposing matrix
+    Matrix<T> transpose()
+    {
+        Matrix<T> transp(cols, rows);
+        for (int i = 0;i < rows;i++)
+            for (int j = 0;j < cols;j++)
+                transp.data[j][i]=data[i][j];
+
+        return transp;
+    }
+
+    Matrix<T> rotation(double angleRad)
+    {
+        if (rows != 2 );//throw error as currently only for 2d point cordinates 
+
+        vector<vector<double>> rotationVect2d = { {cos(angleRad),-sin(angleRad)},{sin(angleRad),cos(angleRad)} }; //{cos(angleRad),-sin(angleRad)},{sin(angleRad),cos(angleRad)}  {-1,0},{0,-1}
+ 
+        Matrix<double> result(rows, cols);
+        Matrix<double> temp(2, 2);//if 2d then 2x2
+        temp.assignVector(rotationVect2d);
+        
+        result = temp * (*this);
+        return result;
+    }
+
+    //displaying matrix content
+    void print()
+    {
+        for(int i = 0;i < rows;i++)
+        {
+            for (int j = 0;j < cols;j++)
+                cout << round (data[i][j]) << "  ";
+
+            cout << "\n";
+        }
+        cout << "\n";
+    }
+
+    void setter(int rowInd, int colInd,T value)
+    {
+        data[rowInd][colInd] = value;
+    }
+
+private:
+    void assignVector(vector<vector<T>>& assignVector)
+    {
+        for (int i = 0;i < assignVector.size();i++)
+        {
+            for (int j = 0;j < assignVector[0].size();j++)
+                this->setter(i, j, assignVector[i][j]);
+        }
+    }
+
+
+};
+
+template <typename T>
+class MatVector : public Matrix<T>
+{
+public:
+    MatVector(int size) :Matrix<T>(size,1)
+    {
+        ;
+    }
+
+    Matrix<T> dotProduct(const MatVector<T>& second)
+    {
+        if (this->rows != second.rows)
+            ;
+        return Matrix<T>(*this) * Matrix<T>(second.transpose());
+    }
+    
+
+};
+
+template <typename T>
+class MatArray : public Matrix<T>
+{
+    MatArray(int size) :Matrix<T>(1, size)
+    {
+        ;
+    }
+
+};
+
+
+
+
+int main()
+{
+    /*int r1, c1, r2, c2;
+    cout << "Enter Matrix A rows and columns:";
+    cin >> r1 >> c1;*/
+   /* cout << "Enter Matrix B rows and columns:";
+    cin >> r2 >> c2;*/
+
+   /* Matrix<double> m1(r1, c1);*/
+    //Matrix<int> m2(r2, c2);
+    int input;
+    //cout << "Enter matrix A elements: ";
+    /*for (int i = 0;i < r1;i++)
+    {
+        for (int j = 0;j < c1;j++)
+        {
+            cin >> input;
+            m1.setter(i, j, input);
+        }
+    }*/
+    //cout << "Enter matrix B elements: ";
+    //for (int i = 0;i < r2;i++)
+    //{
+    //    for (int j = 0;j < c2;j++)
+    //    {
+    //        cin >> input;
+    //        m2.setter(i, j, input);
+    //    }
+    //}
+
+    //cout << "Matrix A:\n";
+    //m1.print();
+    //cout << "Matrix B:\n";
+    //m2.print();
+
+    //if (r1 == r2 && c1 == c2)
+    //{
+    //    cout << "Matrix Addition:\n";
+    //    Matrix<int> m3 = m1 + m2;
+    //    //m3.print();
+
+    //    cout << "Matrix Subtraction:\n";
+    //    Matrix<int> m4 = m1 - m2;
+    //    //m4.print();
+
+    //}
+    //else
+    //{
+    //    cout << "Matrix addition or subtraction not possible!\n";
+    //}
+   
+    //if (c1 == r2)
+    //{
+    //    Matrix<int> m5 = m1 * m2;
+    //    cout << "Matrix multiplication:\n";
+    //    //m5.print();
+    //}
+    //else
+    //{
+    //    cout << "Matrix Multiplication not possible!\n";
+    //}
+    //
+    //cout << "Matrix A transpose :\n";
+    //Matrix<int> m6 =  m1.transpose();
+    ////m6.print();
+    //cout << "Matrix B transpose :\n";
+    //Matrix<int> m7 = m2.transpose();
+    ////m7.print();
+
+    //cout << "Matrix A Scalar multiplication with 2 :\n";
+    //Matrix<int> m8 = m1*2;
+    ////m8.print();
+    //cout << "Matrix B Scalar multiplication with 2 :\n";
+    //Matrix<int> m9 = m2 * 2;
+    ////m9.print();
+
+   /* Matrix<double> m10 = m1.rotation(3.1459);
+    cout << "MatrixA rotate :\n";
+    m10.print();*/
+
+    MatVector<int> v1(5);
+    for (int i = 0;i < 5;i++)
+    {
+        for (int j = 0;j < 1;j++)
+        {
+            cin >> input;
+            v1.setter(i, j, input);
+        }
+    }
+
+    MatVector<int> v2(5);
+    for (int i = 0;i < 5;i++)
+    {
+        for (int j = 0;j < 1;j++)
+        {
+            cin >> input;
+            v1.setter(i, j, input);
+        }
+    }
+
+    //Error need to look into the return types with operator overloading
+    //MatVector<int> v3 = v1.dotProduct(v2);
+    //v3.print();
+
+
+
+    getchar();getchar();
+}
+
+// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
+// Debug program: F5 or Debug > Start Debugging menu
+
+// Tips for Getting Started: 
+//   1. Use the Solution Explorer window to add/manage files
+//   2. Use the Team Explorer window to connect to source control
+//   3. Use the Output window to see build output and other messages
+//   4. Use the Error List window to view errors
+//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
+//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
