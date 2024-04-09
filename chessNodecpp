@@ -1,0 +1,274 @@
+#include <iostream>
+#include <vector>
+ 
+ 
+enum Colors { WHITE, BLACK };
+ 
+class ChessPiece
+{
+	std::pair<int, int> position;
+	bool isAlive;
+	Colors color;
+ 
+public:
+	ChessPiece(std::pair<int, int> position, bool isAlive, Colors color)
+	{
+		this->position = position;
+		this->isAlive = isAlive;
+		this->color = color;
+	}
+ 
+	std::pair<int,int> getPosition()
+	{
+		return position;
+	}
+	bool getIsAlive()
+	{
+		return isAlive;
+	}
+	Colors getColor()
+	{
+		return color;
+	}
+	virtual std::vector<std::pair<int, int>> movementRule() = 0;
+};
+
+
+**********************************************************************************
+
+sample code to convert data into  json string and vice-versa in c++
+
+#include<iostream>
+
+#include<nlohmann/json.hpp>
+ 
+//example structure of data
+
+struct userMove
+
+{
+
+    int id;
+
+    std::string chessPiece;
+
+    std::pair<int, int> newPosition;
+
+};
+ 
+int main()
+
+{
+
+    // 1)converting our struct/class etc. to json
+
+    userMove move = { 0,"Queen",std::make_pair(4,6) };
+
+    nlohmann::json json_data = {
+
+        {"id",move.id},
+
+        {"chessPiece",move.chessPiece},
+
+        {"newPosition",move.newPosition}
+
+    };
+
+    std::cout << json_data.dump(1);
+
+    /*
+
+    above cout prints the following-->
+
+        {
+
+         "chessPiece": "Queen",
+
+         "id": 0,
+
+         "newPosition": [
+
+          4,
+
+          6
+
+         ]
+
+        }
+
+    */
+ 
+    std::cout << std::endl << std::endl;
+ 
+    // 2) reading json string back to struct.
+ 
+    std::string jsonString = json_data.dump(1);
+
+    nlohmann::json readJson = nlohmann::json::parse(jsonString);
+ 
+    userMove readMove;
+
+    readMove.id = readJson["id"];
+
+    readMove.chessPiece = readJson["chessPiece"];
+
+    readMove.newPosition = readJson["newPosition"];
+ 
+    std::cout << readMove.id <<std::endl;
+
+    std::cout << readMove.chessPiece << std::endl;
+
+    std::cout << readMove.newPosition.first << std::endl;
+
+    std::cout << readMove.newPosition.second << std::endl;
+
+    return 0;
+
+}
+**********************************************************************************
+
+#include<iostream>
+ 
+#ifdef _WIN32
+#define _WIN32_WINNT 0x0A00
+#endif
+ 
+#define ASIO_STANDALONE
+ 
+#include<asio.hpp>
+#include<asio/ts/buffer.hpp>
+#include<asio/ts/internet.hpp>
+#include<chrono>
+ 
+ 
+std::vector<char> vbuffer(1024);
+ 
+void GrabSomeData(asio::ip::tcp::socket& socket) {
+ 
+	socket.async_read_some(asio::buffer(vbuffer.data(), vbuffer.size()), [&](std::error_code ec, std::size_t length) {
+ 
+		if (!ec) {
+ 
+			std::cout << "\nReading";
+ 
+			for (int i = 0; i < length; i++) {
+				std::cout << vbuffer[i];
+ 
+				GrabSomeData(socket);
+			}
+		}
+	});
+}
+ 
+int main() {
+	asio::error_code ec;
+ 
+	asio::io_context context;
+ 
+	asio::io_context::work idleWork(context);
+ 
+	std::thread thrContext = std::thread([&]() { context.run();});
+ 
+		asio::ip::tcp::endpoint endpoint(asio::ip::make_address("10.65.13.2", ec), 3000);
+ 
+		asio::ip::tcp::socket socket(context);
+ 
+		socket.connect(endpoint, ec);
+ 
+ 
+		if (!ec) {
+			std::cout << "Connected!" << std::endl;
+		}
+ 
+		else {
+			std::cout << "Failed to connect to address:\n" << ec.message() << std::endl;
+		}
+ 
+		if (socket.is_open()) {
+ 
+			GrabSomeData(socket);
+ 
+			std::string message = "Hello Nodejs\n";
+ 
+			socket.write_some(asio::buffer(message.data(), message.size()), ec);
+ 
+			bool msg = true;
+			while (msg) {
+ 
+				
+				std::cin >> message;
+ 
+				socket.write_some(asio::buffer(message.data(), message.size()), ec);
+ 
+			}
+			//using namespace std::chrono_literals;
+			//std::this_thread::sleep_for(20000ms);
+ 
+			context.run();
+ 
+		}
+ 
+		if(thrContext.joinable()) thrContext.join();
+ 
+		//system("pause");
+	return 0;
+}
+
+**********************************************************************************
+
+const express = require('express');
+const http = require('http');
+const socketIO = require('socket.io');
+const net = require('net');
+ 
+// Create the Express app and HTTP server
+const app = express();
+const httpServer = http.createServer(app);
+const io = socketIO(httpServer);
+ 
+// Serve the frontend files on port 3000
+app.use(express.static('public')); // Assuming your frontend files are in the 'public' directory
+httpServer.listen(3000, () => {
+  console.log('Frontend server listening on port 3000');
+});
+ 
+// Create the TCP server for the C++ backend on port 4000
+const tcpServer = net.createServer((cppBackendSocket) => {
+  console.log('C++ backend connected');
+ 
+  cppBackendSocket.on('data', (dataFromCppBackend) => {
+    console.log('Received data from C++ backend:', dataFromCppBackend.toString());
+ 
+    // Process the data and emit it to the frontend using Socket.IO
+    io.emit('dataFromBackend', dataFromCppBackend.toString());
+  });
+ 
+  cppBackendSocket.on('end', () => {
+    console.log('C++ backend disconnected');
+  });
+ 
+  // Listen for data from the frontend using Socket.IO
+  io.on('connection', (frontendSocket) => {
+    console.log('Frontend connected');
+ 
+    frontendSocket.on('dataFromFrontend', (dataFromFrontend) => {
+      console.log('Received data from frontend:', dataFromFrontend);
+ 
+      // Send the data to the C++ backend over the TCP socket
+      cppBackendSocket.write(dataFromFrontend);
+    });
+ 
+    frontendSocket.on('disconnect', () => {
+      console.log('Frontend disconnected');
+    });
+  });
+});
+ 
+tcpServer.listen(4000, () => {
+  console.log('Backend server listening on port 4000');
+});
+ 
+ 
+//reference code to run nodejs as server for both backend and frontend
+//has context menu
+
