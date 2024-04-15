@@ -1,8 +1,7 @@
-// Matrix3D.cpp : This file contains the 'main' function. Program execution begins and ends there.
+//// Matrix3D.cpp : This file contains the 'main' function. Program execution begins and ends there.
+////
 //
-
 #include <iostream>
-
 #include <vector>
 
 using namespace std;
@@ -22,17 +21,47 @@ public:
     {
         return cols;
     }
-
-    T getValue(int rowInd, int colInd)
-    {
-        return data[rowInd][colInd];
-    }
     //param. constructor
     Matrix(int rows, int cols)
     {
         this->rows = rows;
         this->cols = cols;
         data = vector<vector<T>>(rows, vector<T>(cols, 0));
+    }
+
+    //returns if is square Matrix
+    bool isSquare()
+    {
+        return rows == cols;
+    }
+    void setter(int rowInd, int colInd, T value)
+    {
+        data[rowInd][colInd] = value;
+    }
+    //assign data(stl vector) to our Matrix
+    void assignVector(vector<vector<T>>& assignVector)
+    {
+        for (int i = 0; i < assignVector.size(); i++)
+        {
+            for (int j = 0; j < assignVector[0].size(); j++)
+                this->setter(i, j, assignVector[i][j]);
+        }
+    }
+    T getValue(int rowInd, int colInd)
+    {
+        return data[rowInd][colInd];
+    }
+    //displaying matrix content
+    void print()
+    {
+        for (int i = 0; i < rows; i++)
+        {
+            for (int j = 0; j < cols; j++)
+                cout << round(data[i][j]) << "  ";
+
+            cout << "\n";
+        }
+        cout << "\n";
     }
 
     //addition operator
@@ -63,7 +92,7 @@ public:
     Matrix<T> operator *(const Matrix<T>& second)
     {
         if (cols != second.rows)
-            ;//handle
+            cout << "\nMatrix Multiplication not possible\n";
 
         Matrix<T> res(rows, second.cols);
 
@@ -108,74 +137,11 @@ public:
 
         return transp;
     }
-
-    //if matrix used to denote coordinates them by a degree(anticlock)
-    Matrix<T> angleRotation(double angleRad)
-    {
-        if (rows != 2);//throw error as currently only for 2d point cordinates 
-
-        vector<vector<double>> rotationVect2d = { {cos(angleRad),-sin(angleRad)},{sin(angleRad),cos(angleRad)} };
-
-        Matrix<double> result(rows, cols);
-        Matrix<double> temp(2, 2);//if 2d then 2x2
-        temp.assignVector(rotationVect2d);
-
-        result = temp * (*this);
-        return result;
-    }
-
-    //rotate matrix by 90 deg.
-    Matrix<T> rotation()
-    {
-        //first transpose
-        Matrix<T> rotatedMatrix = transpose();
-
-        //then swap columns from beg. and end
-        for (int begCol = 0, endCol = rotatedMatrix.cols - 1; begCol < endCol; begCol++, endCol--)
-        {
-            for (int i = 0; i < rotatedMatrix.rows; i++)
-            {
-                swap(rotatedMatrix[i][begCol], rotatedMatrix[i][endCol]);
-            }
-        }
-
-
-    }
-
-    bool isSquare()
-    {
-        return rows == cols;
-    }
-
-    //displaying matrix content
-    void print()
-    {
-        for (int i = 0; i < rows; i++)
-        {
-            for (int j = 0; j < cols; j++)
-                cout << round(data[i][j]) << "  ";
-
-            cout << "\n";
-        }
-        cout << "\n";
-    }
-    void setter(int rowInd, int colInd, T value)
-    {
-        data[rowInd][colInd] = value;
-    }
-    void assignVector(vector<vector<T>>& assignVector)
-    {
-        for (int i = 0; i < assignVector.size(); i++)
-        {
-            for (int j = 0; j < assignVector[0].size(); j++)
-                this->setter(i, j, assignVector[i][j]);
-        }
-    }
-
-    T calcCoFactor(int iRow, int jCol)
+    //calculates cofactor of element at iRow and jCol coordinate
+    T cofactor(int iRow, int jCol)
     {
         if (!isSquare())
-            ;//handle
+            cout << "\nThe matrix should be square Matrix to calculate CoFactor\n";
 
         T result = 0;
 
@@ -186,51 +152,45 @@ public:
             if (i == iRow)continue;
 
             int subColIndex = 0;
-            
+
             for (int j = 0; j < cols; j++)
             {
 
                 if (j == jCol)continue;
 
-                //cout << "row:" << i << " col:" << j << " sRow:" << subRowIndex << " subcol:" << subColIndex << ",\n";
                 subMatrix.setter(subRowIndex, subColIndex, data[i][j]);
                 subColIndex++;
             }
             subRowIndex++;
         }
-        result = pow(-1, iRow + jCol) * subMatrix.calcDeterminant();
+        result = pow(-1, iRow + jCol) * subMatrix.determinant();
         return result;
     }
-
-    T calcDeterminant()
+    T determinant()
     {
         if (!isSquare())
-            ;//handle
-
+            cout << "\nThe matrix should be square Matrix to calculate determinant\n";
         if (rows == 1)
         {
             return data[0][0];
         }
-
         T result = 0;
-        for(int j=0;j<cols;j++)
-            result = result + data[0][j]*calcCoFactor(0,j);
-
+        for (int j = 0;j < cols;j++)
+            result = result + data[0][j] * cofactor(0, j);
         return result;
     }
-
     Matrix<T> inverse()
     {
-        T determinant = calcDeterminant();
-        if (determinant == 0)
-            ;//handle
+        T det = determinant();
+        if (det == 0)
+            cout << "\nThe matrix inverse not possible as it is singular\n";
 
         Matrix<T> resultant(rows, cols);
         for (int i = 0; i < rows; i++)
         {
             for (int j = 0; j < cols; j++)
             {
-                resultant.setter(i, j, calcCoFactor(i, j));
+                resultant.setter(i, j, cofactor(i, j));
             }
         }
 
@@ -240,57 +200,164 @@ public:
         {
             for (int j = 0; j < cols; j++)
             {
-                resultant.setter(i, j, resultant.getValue(i, j) / determinant);
+                resultant.setter(i, j, resultant.getValue(i, j) / det);
             }
         }
         return resultant;
     }
-
-    Matrix<T> scaling(T x, T y, T z)
+    Matrix<T> scaling(T sx, T sy, T sz)
     {
         //makesure3d
-        Matrix transformationMatrix(3, 3);
-        vector<vector<T>>vec=  {{x,0,0},
-                                {0,y,0},
-                                {0,0,z}
+        Matrix<T> ScalingMatrix(3, 3);
+        vector<vector<T>>vec = {{sx,0,0},
+                                {0,sy,0},
+                                {0,0,sz}
         };
-        transformationMatrix.assignVector(vec);
+        ScalingMatrix.assignVector(vec);
 
-        return transformationMatrix * (*this);
+        return ScalingMatrix * (*this);
     }
-    
+    Matrix<T> translation(T tx, T ty, T tz)
+    {
+        Matrix<T> translationMatrix(4, 4);
+        vector<vector<T>>vec = {{1,0,0,tx},
+                                {0,1,0,ty},
+                                {0,0,1,tz},
+                                {0,0,0,1},
+        };
+        translationMatrix.assignVector(vec);
 
+        //copy our matrix data in temp and add a unit row at end
+        vector<vector<T>> temp = data;
 
+        vector<T> unit = vector<T>(cols, 1);
+        temp.push_back(unit);
+
+        Matrix<T> resultant(4, cols);
+        resultant.assignVector(temp);
+        resultant = translationMatrix * resultant; 
+        
+        //remove the extra unit row at end and return result
+        resultant.data.pop_back();
+        resultant.rows--;
+        return resultant;
+    }
+    Matrix<T> skewingX(T sy, T sz)
+    {
+        Matrix<T> SkewingMatrix(3, 3);
+        vector<vector<T>>vec = {{1,0,0},
+                                {sy,1,0},
+                                {sz,0,1}
+        };
+        SkewingMatrix.assignVector(vec);
+
+        return SkewingMatrix * (*this);
+    }
+    Matrix<T> skewingY(T sx, T sz)
+    {
+        Matrix<T> SkewingMatrix(3, 3);
+        vector<vector<T>>vec = {{1,sx,0},
+                                {0,1,0},
+                                {0,sz,1}
+        };
+        SkewingMatrix.assignVector(vec);
+
+        return SkewingMatrix * (*this);
+    }
+    Matrix<T> skewingZ(T sx, T sy)
+    {
+        Matrix<T> SkewingMatrix(3, 3);
+        vector<vector<T>>vec = {{1,0,sx},
+                                {0,1,sy},
+                                {0,0,1}
+        };
+        SkewingMatrix.assignVector(vec);
+
+        return SkewingMatrix * (*this);
+    }
+    Matrix<T> rotationX(double angleFromX)
+    {
+        Matrix<T> rotationMatrix(3, 3);
+        vector<vector<T>>vec = {{1,0,0},
+                                {0,cos(angleFromX),-sin(angleFromX)},
+                                {0,sin(angleFromX),cos(angleFromX)}
+        };
+        rotationMatrix.assignVector(vec);
+
+        return rotationMatrix * (*this);
+    }
+    Matrix<T> rotationY(double angleFromY)
+    {
+        Matrix<T> rotationMatrix(3, 3);
+        vector<vector<T>>vec = { {cos(angleFromY),0,sin(angleFromY)},
+                                {0,1,0},
+                                {-sin(angleFromY),0,cos(angleFromY)}
+        };
+        rotationMatrix.assignVector(vec);
+
+        return rotationMatrix * (*this);
+    }
+    Matrix<T> rotationZ(double angleFromZ)
+    {
+        Matrix<T> rotationMatrix(3, 3);
+        vector<vector<T>>vec = {
+                                {cos(angleFromZ),-sin(angleFromZ),0},
+                                {sin(angleFromZ),cos(angleFromZ),0},
+                                {0,0,1}
+        };
+        rotationMatrix.assignVector(vec);
+
+        return rotationMatrix * (*this);
+    }
 };
 
 int main()
 {
-    Matrix<int> mat1(3, 3);/*
-    vector<vector<int>> vec = { {5,6,2},
-                                {7,2,5},
-                                {3,5,1} 
-                              };*/
-    vector<vector<int>> vec = { {1,2,3},
-                                {0,1,4},
-                                {5,6,0} 
-                              };
-    mat1.assignVector(vec);
-
-    //cout << mat1.calcDeterminant();
-    //cout << "\n" << mat1.calcCoFactor(0, 0);
-
-    //mat1.inverse().print();
-
-    Matrix<int> mat2(3, 3);/*
-    vector<vector<int>> vec = { {5,6,2},
+    
+    Matrix<int> mat1(3, 3);
+    vector<vector<int>> vec1 = { {5,6,2},
                                 {7,2,5},
                                 {3,5,1}
-                              };*/
-    vector<vector<int>> vec1 = { {0,0,4},
-                                {4,4,4},
-                                {0,4,0}
-    };
-    mat2.assignVector(vec1);
+                              };
+    mat1.assignVector(vec1);
 
-    mat2.scaling(2, 3, 2).print();
+    //cout << mat1.determinant();
+    //cout << "\n" << mat1.cofactor(0, 0);
+
+    //mat1.inverse().print();
+    Matrix<int> mat2(3, 3);
+    vector<vector<int>> vec2 = { {5,6,2},
+                                {7,2,5},
+                                {3,5,1}
+                              };
+    
+    mat2.assignVector(vec2);
+
+    //mat2.scaling(3, 1, 2).print();
+    
+    Matrix<int> mat3(3, 8);
+    vector<vector<int>> vec3 = { {0,0,0,4,4,4,0,4},
+                                {0,4,4,4,4,0,0,0},
+                                {0,0,4,0,4,0,4,4}
+    };
+    mat3.assignVector(vec3);
+
+    //mat3.translation(2, 4, 6).print();
+    
+    Matrix<int> mat4(3, 8);
+    vector<vector<int>> vec4 = { {0,0,0,2,2,2,2,0},
+                                {0,4,0,0,0,2,4,0},
+                                {4,2,2,2,0,4,0,0}
+    };
+    mat4.assignVector(vec4);
+    //mat4.skewingZ(2,3).print();
+    
+    Matrix<double> mat5(3, 1);
+    vector<vector<double>> vec5 = { {1},
+                                {2},
+                                {3}
+    };
+    //mat5.assignVector(vec);
+    //mat5.rotationZ(3.14/4.0).print();
 }
+
