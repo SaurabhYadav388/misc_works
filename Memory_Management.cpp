@@ -1,5 +1,4 @@
-// Memory_Management.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
+//Allocation done ,deallocation in progress ..
 
 #include <iostream>
 #include<map>
