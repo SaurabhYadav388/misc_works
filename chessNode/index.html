@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chess Board</title>
+    <link rel="stylesheet" type="text/css" href="/styleGame.css" />
+    <link rel="stylesheet" type="text/css" href="/styleGameChat.css" />
+    <link rel="stylesheet" type="text/css" href="/styleGameMoves.css" />
+    <link rel="stylesheet" type="text/css" href="/style1.css" />
+  </head>
+  <body>
+    
+    <div class="move-container"> 
+          <table class="tab">
+              <tr>
+                  <td></td>
+                  <td>User1</td>
+                  <td>User2</td>
+              </tr>
+              <tr>
+                <td>1</td>
+                <td>e2</td>
+                <td>r4</td>
+            </tr>
+            <tr>
+              <td>1</td>
+              <td>e2</td>
+              <td>r4</td>
+          </tr><tr>
+            <td>1</td>
+            <td>e2</td>
+            <td>r4</td>
+        </tr><tr>
+          <td>1</td>
+          <td>e2</td>
+          <td>r4</td>
+      </tr>
+            
+            <tr>
+              <td>2</td>
+              <td>y3</td>
+              <td>g2</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>y3</td>
+            <td>g2</td>
+        </tr><tr>
+          <td>2</td>
+          <td>y3</td>
+          <td>g2</td>
+      </tr><tr>
+        <td>2</td>
+        <td>y3</td>
+        <td>g2</td>
+    </tr><tr>
+      <td>2</td>
+      <td>y3</td>
+      <td>g2</td>
+  </tr><tr>
+    <td>2</td>
+    <td>y3</td>
+    <td>g2</td>
+</tr><tr>
+  <td>2</td>
+  <td>y3</td>
+  <td>g2</td>
+</tr><tr>
+  <td>2</td>
+  <td>y3</td>
+  <td>g2</td>
+</tr>
+          <tr>
+              <td>2</td>
+              <td>y3</td>
+              <td>g2</td>
+          </tr><tr>
+            <td>2</td>
+            <td>y3</td>
+            <td>g2</td>
+        </tr><tr>
+              <td>2</td>
+              <td>y3</td>
+              <td>g2</td>
+          </tr>
+          
+        
+          
+          </table>
+    </div>
+
+    <div class="container">
+      <h1>CHESS</h1>
+      <label for="theme-select-board">Select Theme for board:</label>
+      <select id="theme-select-board">
+        <option value="default">Default</option>
+        <option value="dark">Dark</option>
+        <option value="light">Light</option>
+        <option value="red">Red</option>
+        <option value="blue">Blue</option>
+        <option value="yellow">Yellow</option>
+        <option value="green">Green</option>
+        <option value="purple">Purple</option>
+        <option value="magenta">Magenta</option>
+        <option value="orange">Orange</option>
+      </select>   
+    </div>
+    
+    <ul>
+        <!-- <div class="div" id="row8">
+            <li class="box" id="81">Brook</li> 
+            <li class="box" id="82">Bknight</li>
+            <li class="box" id="83">Bbishop</li>
+            <li class="box" id="84">Bqueen</li>
+            <li class="box" id="85">Bking</li>
+            <li class="box" id="86">Bbishop</li>
+            <li class="box" id="87">Bknight</li>
+            <li class="box" id="88">Brook</li>
+        </div>
+        <div class="div" id="row7">
+            <li class="box" id="71">Bpawn</li>
+            <li class="box" id="72">Bpawn</li>
+            <li class="box" id="73">Bpawn</li>
+            <li class="box" id="74">Bpawn</li>
+            <li class="box" id="75">Bpawn</li>
+            <li class="box" id="76">Bpawn</li>
+            <li class="box" id="77">Bpawn</li>
+            <li class="box" id="78">Bpawn</li>
+        </div>
+        <div class="div" id="row6">
+            <li class="box" id="61"></li>
+            <li class="box" id="62"></li>
+            <li class="box" id="63"></li>
+            <li class="box" id="64"></li>
+            <li class="box" id="65"></li>
+            <li class="box" id="66"></li>
+            <li class="box" id="67"></li>
+            <li class="box" id="68"></li>
+        </div>
+        <div class="div" id="row5">
+            <li class="box" id="51"></li>
+            <li class="box" id="52"></li>
+            <li class="box" id="53"></li>
+            <li class="box" id="54"></li>
+            <li class="box" id="55"></li>
+            <li class="box" id="56"></li>
+            <li class="box" id="57"></li>
+            <li class="box" id="58"></li>
+        </div>
+        <div class="div" id="row4">
+            <li class="box" id="41"></li>
+            <li class="box" id="42"></li>
+            <li class="box" id="43"></li>
+            <li class="box" id="44"></li>
+            <li class="box" id="45"></li>
+            <li class="box" id="46"></li>
+            <li class="box" id="47"></li>
+            <li class="box" id="48"></li>
+        </div>
+        <div class="div" id="row3">
+            <li class="box" id="31"></li>
+            <li class="box" id="32"></li>
+            <li class="box" id="33"></li>
+            <li class="box" id="34"></li>
+            <li class="box" id="35"></li>
+            <li class="box" id="36"></li>
+            <li class="box" id="37"></li>
+            <li class="box" id="38"></li>
+        </div>
+        <div class="div" id="row2">
+            <li class="box" id="21">Wpawn</li>
+            <li class="box" id="22">Wpawn</li>
+            <li class="box" id="23">Wpawn</li>
+            <li class="box" id="24">Wpawn</li>
+            <li class="box" id="25">Wpawn</li>
+            <li class="box" id="26">Wpawn</li>
+            <li class="box" id="27">Wpawn</li>
+            <li class="box" id="28">Wpawn</li>
+        </div>
+        <div class="div" id="row1">
+            <li class="box" id="11">Wrook</li>
+            <li class="box" id="12">Wknight</li>
+            <li class="box" id="13">Wbishop</li>
+            <li class="box" id="14">Wqueen</li>
+            <li class="box" id="15">Wking</li>
+            <li class="box" id="16">Wbishop</li>
+            <li class="box" id="17">Wknight</li>
+            <li class="box" id="18">Wrook</li>
+        </div> -->
+    </ul>
+
+    <h2 id="tog">White's Turn</h2>
+    <h2 id="reset-btn">Reset</h2>
+
+    <div class="chat-container" >
+      <!-- <h2>Chat Box</h2> -->
+      <ul class="chat">
+
+        <li class="message left">
+          <p>HELLLLLOOOOOOOO!</p>
+        </li>
+        
+        <li class="message right">
+          <p>HELLLLLOOOOOOOO!</p>
+        </li>
+        <li class="message left">
+          <p>HELLLLLOOOOOOOO!HELLLLLOOOOOOOO! HELLLLLOOOOOOOO!</p>
+        </li>
+        <li class="message left">
+          <p>HELLLLLOOOOOOOO!</p>
+        </li>
+        
+        <li class="message right">
+          <p>HELLLLLOOOOOOOO!</p>
+        </li>
+        <li class="message right">
+          <p>YOOO MAN DILJIT DOSANJH IN tdE HOUSE </p>
+        </li>
+        <li class="message left">
+          <p>HELLLLLOOOOOOOO!HELLLLLOOOOOOOO! HELLLLLOOOOOOOO!</p>
+        </li><li class="message left">
+          <p>HELLLLLOOOOOOOO!</p>
+        </li>
+        
+        
+  </li><li class="message left">
+    <p>HELLLLLOOOOOOOO!</p>
+  </li>
+        
+      <input type="text" class="text_input" placeholder="Message..." />
+    </div>
+    
+    <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+    <script src="index.js"></script>
+  </body>
+</html>
