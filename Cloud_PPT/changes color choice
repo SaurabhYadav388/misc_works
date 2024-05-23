@@ -1,0 +1,62 @@
+menu html:
+
+function redirect() {
+          sessionStorage.setItem("playerID", ID.PLAYER2);
+          sessionStorage.setItem("isCreator","true");
+          var roomCode = generateRoomCode(5);
+          sessionStorage.setItem("createRoomId", roomCode);
+          console.log("roomcode",roomCode);
+          window.location.href = "game";
+        }
+
+        function replaceWithInput(button) {
+          var inputElement = document.createElement("input");
+          inputElement.setAttribute("type", "text");
+          inputElement.setAttribute("placeholder", "ENTER GAME CODE! ");
+          inputElement.classList.add("input-join");
+
+          inputElement.addEventListener("keypress", function (event) {
+            if (event.key === "Enter") {
+              const joinRoomId = inputElement.value;
+              socket.emit("roomExistsCheck", joinRoomId, (doesExist,joinerPlayerId) => {
+                if (doesExist == true) {
+                  sessionStorage.setItem("playerID", joinerPlayerId); 
+                  sessionStorage.setItem("joinRoomId", joinRoomId);
+                  sessionStorage.setItem("isCreator","false");
+                  window.location.href = "game";
+                }
+                else {
+                  window.alert("Room can't be accessed");
+                }
+              });
+            }
+          });
+
+          button.parentNode.replaceChild(inputElement, button);
+
+          inputElement.focus();
+        }
+
+///////////////////////////////
+
+if (sessionStorage.getItem("isCreator") == "true") {
+    console.log("my uid is:", sessionStorage.getItem("uid"));
+    socket.emit('createRoom', sessionStorage.getItem("createRoomId"));
+  }
+  else {
+    console.log("my uid is:", sessionStorage.getItem("uid"));
+    socket.emit('joinRoom', sessionStorage.getItem("joinRoomId"), sessionStorage.getItem("uid"));
+  }
+
+///////////////////////////////////////
+
+
+function showRoomCode() {
+  if (sessionStorage.getItem("isCreator") == "true") {
+    document.getElementById("roomCode").innerText = sessionStorage.getItem("createRoomId");
+  }
+  else {
+    document.getElementById("roomCode").innerText = sessionStorage.getItem("joinRoomId");
+  }
+}
+////////////////////////////////////
