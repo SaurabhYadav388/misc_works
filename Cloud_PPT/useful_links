@@ -4,7 +4,7 @@ https://github.com/aws-samples/aws-gamelift-sample/tree/master/Lambda
 
 https://github.com/aws-samples/aws-gamelift-and-serverless-backend-sample/tree/main/GameServiceAPI
 https://github.com/aws-samples/aws-gamelift-and-serverless-backend-sample/blob/main/GameServiceAPI/gameservice/requestmatchmaking.js
-
+https://repost.aws/questions/QUvKSyrOn5QAuAJt63yar0WA/clarifying-gamelift-pricing-costs-and-best-practices-for-saving-money
 
 
 help me undersatnd the following lambda function for request matchmaking in gamelift invoked by aws api gateway:
