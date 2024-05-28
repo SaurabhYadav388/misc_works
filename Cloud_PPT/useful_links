@@ -1,3 +1,31 @@
+dialog box overlay++
+
+ui -hit,shots,time (hud)
+
+rendering sphere ball in projectile.
+
+render wall of diff. 
+shader- calc amount of light at each level.(make 2d model appr 3d)
+texture/material.
+
+
+loadlevelasync++ to load Levels
+
+deviceResource++
+
+meshobject render -->(Input assembly) vertex buffer,indexbuffer
+
+sphereMesh.cpp++
+
+gameconstant.h ++
+	//init value exp.
+
+game renderer.cpp ++ : tasks init. loading textures etc. with threads
+
+//attach texture to resp. objects
+change on resize,never change etc.
+/////////////////////////////////////////////////////////////////////////////////////
+
 https://aws-samples.github.io/aws-gamelift-sample/en/intro/
 
 https://github.com/aws-samples/aws-gamelift-sample/tree/master/Lambda
