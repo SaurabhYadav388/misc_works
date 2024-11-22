@@ -1,0 +1,455 @@
+import 'package:crossoku/cloud/auth_service.dart';
+import 'package:crossoku/cloud/cached_data.dart';
+import 'package:crossoku/cloud/country_getter.dart';
+import 'package:crossoku/cloud/datastore.dart';
+import 'package:crossoku/cloud/firebase_datastore.dart';
+import 'package:crossoku/cloud/user_profile_online.dart';
+import 'package:crossoku/js_interop_service.dart';
+import 'package:crossoku/local/user_profile_data.dart';
+import 'package:crossoku/local/user_save_data.dart';
+import 'package:crossoku/save_load/save_load_manager.dart';
+import 'package:crossoku/views/dialogs/leaderboard_bottom_sheet.dart';
+import 'package:crossoku/views/screens/leaderboard/leaderboard.dart';
+import 'package:crossoku/views/screens/leaderboard/leaderboard_data.dart';
+import 'package:crossoku/views/screens/loading_indicator_view.dart';
+import 'package:crossoku/views/user/create_password.dart';
+import 'package:crossoku/views/user/create_username.dart';
+import 'package:crossoku/views/user/login.dart';
+import 'package:crossoku/views/user/register.dart';
+import 'package:crossoku/views/user/verify_otp.dart';
+import 'package:crossoku/views/utility/diagnostic.dart';
+import 'package:crossoku/views/utility/time_service.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:crossoku/bloc/app_actions.dart';
+import 'package:crossoku/bloc/app_bloc.dart';
+import 'package:crossoku/bloc/app_state.dart';
+import 'package:crossoku/constants/routes.dart';
+import 'package:crossoku/constants/values.dart';
+import 'package:crossoku/dialogs/generic_dialog.dart';
+import 'package:crossoku/dialogs/loading_screen.dart';
+import 'package:crossoku/models/models.dart';
+import 'package:crossoku/views/screens/blank_view.dart';
+import 'package:crossoku/views/screens/gameplay_view.dart';
+import 'package:crossoku/views/screens/result_view.dart';
+import 'package:crossoku/views/screens/loading_view.dart';
+import 'package:flutter/foundation.dart';
+import 'package:crossoku/views/dialogs/how_to_play_bottom_sheet.dart';
+import 'package:crossoku/views/utility/device_info.dart';
+import 'package:crossoku/local/stat_data.dart';
+import 'package:crossoku/views/utility/utility.dart';
+import 'package:crossoku/views/screens/welcome_view.dart';
+import "package:universal_html/html.dart" as html;
+import "package:universal_html/html.dart" show Event;
+import 'package:uuid/v4.dart';
+
+bool prevWebViewHidden = false;
+bool webViewHidden = false;
+
+final isWebMobile = kIsWeb &&
+    (defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.android);
+final isDesktop = GameUtil().isDesktop();
+final isMobile = (defaultTargetPlatform == TargetPlatform.iOS ||
+    defaultTargetPlatform == TargetPlatform.android);
+
+void tabChangeEvent(event) {
+  if (html.window.document.visibilityState == "visible") {
+    prevWebViewHidden = webViewHidden;
+    webViewHidden = false;
+  } else {
+    Hive.box(hiveBoxNameTime).put('pausedtime', DateTime.now());
+    prevWebViewHidden = webViewHidden;
+    webViewHidden = true;
+  }
+}
+
+Future<void> getAndSaveLocalUserNameInMemory() async {
+  try {
+    Box box = await Hive.openBox<UserProfileLocal>(hiveBoxUserProfile);
+    UserProfileLocal? localProfile = box.get(hiveBoxUserProfileRecordString);
+    String userId = "";
+    if (localProfile != null) {
+      userId = localProfile.userId;
+    } else {
+      userId = "${const UuidV4().generate()}_$localWordItUsernameSuffix";
+      await box.put(
+          hiveBoxUserProfileRecordString, UserProfileLocal(userId: userId));
+    }
+    CachedData().userIdLocal = userId;
+  } catch (e) {
+    rethrow;
+  }
+}
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  Hive.registerAdapter(StatDataAdapter());
+  Hive.registerAdapter(UserProfileLocalAdapter());
+  Hive.registerAdapter(UserSaveLocalAdapter());
+  await Hive.initFlutter();
+  await AuthService.backend(reason: DataStoreReason.fetchPuzzle).initialize();
+
+  runApp(MaterialApp(
+    routes: {
+      welcomeRoute: (context) => LoadingView(
+          error: null,
+          fetchedPuzzle: null,
+          size: const Size(0, 0),
+          callback: () {
+            return;
+          }),
+      gameplayRoute: (context) => GameplayView(
+          firstCol: const [],
+          rows: 0,
+          initialTimerValue: null,
+          specialColumn: -1,
+          invalidEntry: InvalidEntryOnGrid.initState(),
+          cols: 0,
+          letterBoxes: null,
+          width: 0,
+          zoom: false,
+          gridCellExtraInfoList: const [],
+          mainGridLetters: null),
+      resultRoute: (context) => ResultView(
+            size: const Size(0, 0),
+            result: dummyStats,
+          ),
+    },
+    title: appTitle,
+    theme: ThemeData(
+      colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+      useMaterial3: false,
+    ),
+    home: const HomePage(),
+  ));
+}
+
+void handleErrors(
+    double width, bool desktop, BuildContext context, Errors error) {
+  String title = '';
+  String content = '';
+  switch (error) {
+    case Errors.unableToFetchLocalUserId:
+      title = 'Error';
+      content = "Local user id not found";
+
+      break;
+    case Errors.unableToFetchFirebaseUserId:
+      title = 'Error';
+      content = "Online user id not found";
+
+      break;
+    case Errors.textCopiedToClipboard:
+      title = 'Update';
+      content = "Text copied to clipboard";
+
+      break;
+    case Errors.puzzleNotUploadedYet:
+      title = "Error";
+      content = "Puzzle yet to go live. Please check again in some time.";
+    case Errors.puzzleNotCompletedSoStatsCannotBeShared:
+      title = errorTitleSomethingWentWrong;
+      content = errorDescCannotBeShared;
+
+      break;
+
+    case Errors.failedToConnectToFirebase:
+      title = errorTitleSomethingWentWrong;
+      content = errorFirebaseConnFailed;
+      break;
+    case Errors.notEnoughGamesForLeaderboard:
+      title = errorTitleError;
+      content = minMatchLeaderboardError;
+      break;
+    case Errors.invalidBackToPuzzle:
+      title = invalidBackToPuzzleTitle;
+      content = invalidBackToPuzzleContent;
+      break;
+    case Errors.invalidPuzzle:
+      title = invalidPuzzleTitle;
+      content = invalidPuzzleContent;
+      break;
+    case Errors.puzzleGameplayError:
+      title = errorTitleSomethingWentWrong;
+      content = errorContentSomethingWentWrongGameplayError;
+      break;
+    case Errors.puzzleNotAvailableForToday:
+      title = noPuzzleFound;
+      content = nopuzzleAvailableToday;
+    case Errors.failedToLoadDataFromFirebase:
+      title = "Error";
+      content = notAbleToLoadData;
+    default:
+  }
+  if (error == Errors.leaderboardHelp) {
+    final size = Size(width, MediaQuery.of(context).size.height);
+
+    showModalBottomSheet(
+      isScrollControlled: true,
+      isDismissible: true,
+      constraints: BoxConstraints(
+          maxWidth: size.width,
+          maxHeight: size.height * leaderboardHelpDialogHeightRatio),
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+      ),
+      context: context,
+      builder: (context) {
+        return LeaderboardHelpPageBottomSheet().showBottomSheet(context, size);
+      },
+    ).then(
+      (value) => context.read<AppBloc>().add(
+            ToggleDialog(
+              show: false,
+              dialog: DialogWordIt.leaderboard,
+            ),
+          ),
+    );
+  } else if (error == Errors.help) {
+    final size = Size(width, MediaQuery.of(context).size.height);
+
+    showModalBottomSheet(
+      isScrollControlled: true,
+      isDismissible: true,
+      constraints: BoxConstraints(
+          maxWidth: size.width,
+          maxHeight: size.height * GameUtil().getHowToPlaySheetHeight()),
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+      ),
+      context: context,
+      builder: (context) {
+        return HowToPlayPageBottomSheet().showBottomSheet(context, size);
+      },
+    ).then(
+      (value) => context.read<AppBloc>().add(
+            ToggleDialog(
+              show: false,
+              dialog: DialogWordIt.help,
+            ),
+          ),
+    );
+  } else {
+    showGenericDialog(
+        context: context,
+        dialogName: DialogWordIt.none,
+        title: title,
+        content: content,
+        optionBuilder: () => {'ok': true});
+  }
+}
+
+Widget portraitGame(Size size, AppState state, BuildContext context) {
+  TimeService().getCurrentTimeStampIndia();
+
+  if (state.currentScreen == Screen.blankScreen) {
+    context.read<AppBloc>().add(ConnectToFirebase());
+    return const BlankView();
+  } else if (state.currentScreen == Screen.loadingScreen) {
+    return LoadingView(
+      error: state.errors,
+      size: size,
+      fetchedPuzzle: state.fetchedPuzzle,
+      callback: () {
+        return;
+      },
+    );
+  } else if (state.currentScreen == Screen.leaderboard) {
+    return LeaderboardView(
+      size: size,
+      onlineData: state.leaderboardData ?? LeaderboardDataOnline.empty(),
+    );
+  } else if (state.currentScreen == Screen.resetPassword) {
+    return CreatePasswordView(size: size);
+  } else if (state.currentScreen == Screen.otp) {
+    return VerifyOtpView(size: size);
+  } else if (state.currentScreen == Screen.login) {
+    return LoginView(size: size);
+  } else if (state.currentScreen == Screen.signup) {
+    return RegisterView(size: size);
+  } else if (state.currentScreen == Screen.chooseUsername) {
+    return CreateUsernameView(size: size);
+  } else if (state.currentScreen == Screen.gameplayScreen) {
+    return GameplayView(
+      firstCol: state.rowStartCol,
+      initialTimerValue: state.initialTimerValue,
+      letterBoxes: state.letterBoxes,
+      mainGridLetters: state.gridLetters!,
+      tapMode: state.activeRowArrow == -1 ? false : true,
+      rows: state.rowCount,
+      zoom: state.zoomOn ?? false,
+      cols: state.colCount,
+      invalidEntry: state.invalidEntry,
+      specialColumn: state.specialColumn,
+      gridCellExtraInfoList: state.gridExtraInfoList,
+      width: size.width,
+    );
+  } else if (state.currentScreen == Screen.resultScreen) {
+    return ResultView(
+      result: state.result,
+      size: size,
+    );
+  } else if (state.currentScreen == Screen.welcomeScreen) {
+    return WelcomeView().getWelcomeView(size, context, state.result, true);
+  } else if (state.currentScreen == Screen.puzzleNotUploadedScreen) {
+    return WelcomeView().getWelcomeView(size, context, state.result, false);
+  }
+  return Container();
+}
+
+Widget landscapeGame(Size size, AppState state, BuildContext context) {
+  return const Center(child: Text(landscapeErrorText));
+}
+
+Widget gameWidget(Size size, AppState state, BuildContext context,
+    [Orientation? forcedOrientation]) {
+  // context.read<AppBloc>().add(ConnectToFirebase());
+  // return RegisterView(size: size);
+  // return ResultView(
+  //   result: dummyStats,
+  //   size: size,
+  // );
+
+  //////////////////////////
+  if (forcedOrientation != null && forcedOrientation == Orientation.portrait) {
+    return portraitGame(size, state, context);
+  }
+  final portrait = MediaQuery.of(context).orientation == Orientation.portrait;
+  if (portrait) {
+    return portraitGame(size, state, context);
+  }
+  return landscapeGame(size, state, context);
+}
+
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  void windowResizeEvent(Event e) {}
+  Future<String>? _initialDataFuture;
+
+  @override
+  void initState() {
+    // html.window.addEventListener('beforeunload', (event) async {
+    //   event.preventDefault();
+    //   return 'Are you sure you want to leave?';
+    // });
+
+    super.initState();
+    _initialDataFuture = run();
+  }
+
+  Future<String> run() async {
+    try {
+      await getAndSaveLocalUserNameInMemory();
+      await Hive.openBox<StatData>(hiveBoxName);
+      await Hive.openBox<UserSaveLocal>(hiveBoxNameSave);
+      await CountryGetter().getCountryAsync();
+      await DeviceInfo().initPlatformState();
+      DataStore store = AuthService.backend().getDataStore();
+      if (store is FireDataStore) {
+        UserProfile profile = await store.getUserProfile();
+        CachedData().profile = profile;
+      }
+
+      GameUtil().setBox();
+      GameUtil().setSaveBox();
+
+      JsInteropService().setMailService();
+      DiagnosticWordIt().init();
+      SaveLoadManager().init();
+      return "";
+    } catch (e) {
+      return e.toString();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
+    double desktopClampedWidth = size.height * pcVersionAspectRatio;
+    desktopClampedWidth = size.width;
+    size = Size(
+      isDesktop ? desktopClampedWidth : size.width,
+      size.height,
+    );
+    return FutureBuilder(
+      future: _initialDataFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.hasError) {
+            return const LoadingIndicatorView(error: "Something went wrong");
+          } else if (snapshot.hasData) {}
+          return BlocProvider(
+            create: (context) => AppBloc(),
+            child: Scaffold(
+              body: BlocConsumer<AppBloc, AppState>(
+                listener: (context, state) {
+                  if (state.isLoading) {
+                    LoadingScreen.instance().show(
+                      context: context,
+                      text: waitString,
+                    );
+                  } else {
+                    LoadingScreen.instance().hide();
+                  }
+                  if (state.errors != null) {
+                    handleErrors(
+                      size.width,
+                      isDesktop,
+                      context,
+                      state.errors!,
+                    );
+                  }
+                },
+                buildWhen: (previous, current) {
+                  bool ret = previous != current ||
+                      (prevWebViewHidden != webViewHidden);
+                  return ret;
+                },
+                builder: (context, state) {
+                  final bool isTablet = size.shortestSide >= 600;
+                  if (isMobile) {
+                    return isTablet
+                        ? gameWidget(size, state, context)
+                        : gameWidget(size, state, context);
+                  }
+                  //desktop
+                  else {
+                    if (isDesktop) {
+                      return gameWidget(
+                          size, state, context, Orientation.portrait);
+                    }
+                    // mobile web
+                    else {
+                      return Container(
+                        color: Colors.blue,
+                      );
+                    }
+                  }
+                },
+              ),
+            ),
+          );
+        } else {
+          return const LoadingIndicatorView(
+            error: "Loading",
+          );
+        }
+      },
+    );
+  }
+}
+
+// await Hive.deleteFromDisk();
+// html.window.onBeforeUnload.listen((e) {
+//   Hive.close();
+// });
